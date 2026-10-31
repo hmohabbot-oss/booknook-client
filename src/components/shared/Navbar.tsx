@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
-import { BookOpen, LogOut, User as UserIcon, Menu, X } from "lucide-react";
+import { BookOpen, LogOut, User as UserIcon, Menu, X, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function Navbar() {
@@ -22,32 +22,34 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <nav className="bg-[#181310]/95 backdrop-blur-md border-b border-[#2d221c] sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo & Name */}
-          <Link href="/" className="flex items-center gap-2 text-indigo-600 font-bold text-xl">
-            <BookOpen className="w-7 h-7" />
-            <span>BookNook</span>
+          <Link href="/" className="flex items-center gap-2.5 text-[#e5a856] font-bold text-xl group">
+            <div className="p-2 rounded-xl bg-[#281f1a] border border-[#3e2e25] group-hover:border-[#e5a856] transition-colors">
+              <BookOpen className="w-5 h-5 text-[#e5a856]" />
+            </div>
+            <span className="tracking-wide font-serif">BookNook</span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link href="/" className="text-slate-600 hover:text-indigo-600 font-medium">
+          <div className="hidden md:flex items-center space-x-7">
+            <Link href="/" className="text-stone-300 hover:text-[#e5a856] text-sm font-medium transition-colors">
               Home
             </Link>
-            <Link href="/books" className="text-slate-600 hover:text-indigo-600 font-medium">
+            <Link href="/books" className="text-stone-300 hover:text-[#e5a856] text-sm font-medium transition-colors">
               All Books
             </Link>
             {session && (
               <>
-                <Link href="/add-book" className="text-slate-600 hover:text-indigo-600 font-medium">
+                <Link href="/add-book" className="text-stone-300 hover:text-[#e5a856] text-sm font-medium transition-colors">
                   Add Book
                 </Link>
-                <Link href="/my-books" className="text-slate-600 hover:text-indigo-600 font-medium">
+                <Link href="/my-books" className="text-stone-300 hover:text-[#e5a856] text-sm font-medium transition-colors">
                   My Books
                 </Link>
-                <Link href="/my-borrows" className="text-slate-600 hover:text-indigo-600 font-medium">
+                <Link href="/my-borrows" className="text-stone-300 hover:text-[#e5a856] text-sm font-medium transition-colors">
                   My Borrows
                 </Link>
               </>
@@ -60,32 +62,32 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-indigo-500 focus:outline-none"
+                  className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-[#e5a856] transition-all"
                 >
                   <img
                     src={session.user.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
                     alt={session.user.name || "User"}
-                    className="w-9 h-9 rounded-full object-cover border border-slate-300"
+                    className="w-9 h-9 rounded-full object-cover border border-[#48352b]"
                   />
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-slate-100 z-50">
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-sm font-semibold text-slate-800">{session.user.name}</p>
-                      <p className="text-xs text-slate-500 truncate">{session.user.email}</p>
+                  <div className="absolute right-0 mt-2 w-52 bg-[#1f1814] rounded-xl shadow-2xl py-2 border border-[#3a2c24] z-50">
+                    <div className="px-4 py-2.5 border-b border-[#2d221c]">
+                      <p className="text-sm font-semibold text-[#f7f2eb]">{session.user.name}</p>
+                      <p className="text-xs text-stone-400 truncate">{session.user.email}</p>
                     </div>
                     <Link
-                      href="/profile"
+                      href="/my-borrows"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-stone-300 hover:bg-[#2b211b] hover:text-[#e5a856] transition-colors"
                     >
-                      <UserIcon className="w-4 h-4 text-slate-500" />
-                      My Profile
+                      <UserIcon className="w-4 h-4 text-[#e5a856]" />
+                      My Borrows
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-400 hover:bg-[#2b211b] text-left transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Logout
@@ -97,13 +99,13 @@ export default function Navbar() {
               <div className="flex items-center space-x-3">
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-indigo-600"
+                  className="px-4 py-2 text-sm font-medium text-stone-300 hover:text-[#e5a856] transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+                  className="px-5 py-2 text-sm font-semibold text-[#14100e] bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] rounded-xl shadow-md transition-all"
                 >
                   Register
                 </Link>
@@ -111,11 +113,11 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-slate-600 hover:text-slate-900"
+              className="text-stone-300 hover:text-[#e5a856] p-2"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>

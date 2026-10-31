@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "BookNook | A Small Online Library",
-  description: "Add a book, borrow a book, return a book.",
+  description: "A cozy community library inspired by classic vintage literature.",
 };
 
 export default function RootLayout({
@@ -28,9 +28,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-50 text-slate-800`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-[#120e0c] text-[#f7f2eb]`}
       >
-        <Toaster position="top-right" reverseOrder={false} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#221a16",
+              color: "#f7f2eb",
+              border: "1px solid #3d2d25",
+            },
+          }}
+        />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

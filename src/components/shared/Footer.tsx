@@ -3,74 +3,75 @@ import { BookOpen, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-300 pt-12 pb-8 border-t border-slate-800">
+    <footer className="bg-[#0e0b09] text-stone-300 pt-14 pb-8 border-t border-[#261c16]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Brand & Theme */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-white font-bold text-xl">
-              <BookOpen className="w-6 h-6 text-indigo-400" />
-              <span>BookNook</span>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
+          {/* Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5 text-[#e5a856] font-bold text-xl">
+              <BookOpen className="w-6 h-6" />
+              <span className="font-serif tracking-wider">BookNook</span>
             </div>
-            <p className="text-sm text-slate-400">
-              A small online community library. Add a book, borrow a book, return a book.
+            <p className="text-xs text-stone-400 leading-relaxed">
+              A cozy vintage library where stories live forever. Add a book, borrow a book, and return a book to keep the circle of knowledge alive.
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Links */}
           <div>
-            <h3 className="text-white font-semibold text-sm mb-3 uppercase tracking-wider">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="text-[#e5a856] font-semibold text-xs mb-4 uppercase tracking-wider font-serif">Quick Navigation</h3>
+            <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/" className="hover:text-indigo-400">Home</Link>
+                <Link href="/" className="hover:text-[#e5a856] transition-colors">Home Library</Link>
               </li>
               <li>
-                <Link href="/books" className="hover:text-indigo-400">All Books</Link>
+                <Link href="/books" className="hover:text-[#e5a856] transition-colors">All Book Catalog</Link>
+              </li>
+              <li>
+                <Link href="/add-book" className="hover:text-[#e5a856] transition-colors">Contribute a Book</Link>
               </li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h3 className="text-white font-semibold text-sm mb-3 uppercase tracking-wider">Contact Us</h3>
-            <ul className="space-y-2 text-sm text-slate-400">
+            <h3 className="text-[#e5a856] font-semibold text-xs mb-4 uppercase tracking-wider font-serif">Library Desk</h3>
+            <ul className="space-y-2.5 text-xs text-stone-400">
               <li className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-indigo-400" />
-                <span>Dhaka, Bangladesh</span>
+                <MapPin className="w-4 h-4 text-[#e5a856]" />
+                <span>Rajshahi, Bangladesh</span>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-indigo-400" />
-                <span>support@booknook.com</span>
+                <Mail className="w-4 h-4 text-[#e5a856]" />
+                <span>curator@booknook.com</span>
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-indigo-400" />
+                <Phone className="w-4 h-4 text-[#e5a856]" />
                 <span>+880 1700-000000</span>
               </li>
             </ul>
           </div>
 
-          {/* Social (with new X logo) */}
+          {/* Social Links (New X Logo) */}
           <div>
-            <h3 className="text-white font-semibold text-sm mb-3 uppercase tracking-wider">Follow Us</h3>
+            <h3 className="text-[#e5a856] font-semibold text-xs mb-4 uppercase tracking-wider font-serif">Connect With Us</h3>
             <div className="flex space-x-3">
-              {/* New X Logo */}
               <a
                 href="https://x.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-800 hover:bg-indigo-600 text-white"
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#1c1613] hover:bg-[#e5a856] hover:text-[#120e0c] text-stone-300 border border-[#342720] transition-all"
                 aria-label="X (formerly Twitter)"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
-              {/* Facebook */}
               <a
                 href="https://facebook.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-800 hover:bg-indigo-600 text-white"
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#1c1613] hover:bg-[#e5a856] hover:text-[#120e0c] text-stone-300 border border-[#342720] transition-all"
                 aria-label="Facebook"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -81,8 +82,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} BookNook. All rights reserved.
+        <div className="border-t border-[#221813] pt-6 text-center text-xs text-stone-500">
+          © {new Date().getFullYear()} BookNook Community Library. Preserving knowledge together.
         </div>
       </div>
     </footer>

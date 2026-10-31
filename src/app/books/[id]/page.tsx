@@ -82,7 +82,7 @@ export default function BookDetailsPage() {
     }
   }, [id]);
 
-  // বই ধার নেওয়ার ফাংশন (Borrow Action)
+  // বই ধার নেওয়া
   const handleConfirmBorrow = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!book || !session) return;
@@ -110,7 +110,6 @@ export default function BookDetailsPage() {
       }
 
       toast.success(`You have successfully borrowed "${book.title}"!`);
-      // UI-তে ইনস্ট্যান্ট কপি সংখ্যা ১ কমিয়ে দেওয়া
       setBook((prev) => (prev ? { ...prev, availableCopies: prev.availableCopies - 1 } : null));
       setModalOpen(false);
     } catch (err: unknown) {
@@ -121,12 +120,11 @@ export default function BookDetailsPage() {
     }
   };
 
-  // লোডিং স্টেট
   if (isPending || loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-500 font-medium">Loading book details...</p>
+        <div className="w-10 h-10 border-4 border-[#e5a856] border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-stone-400 font-serif">Opening library volume...</p>
       </div>
     );
   }
@@ -136,14 +134,14 @@ export default function BookDetailsPage() {
   if (!book) {
     return (
       <div className="max-w-3xl mx-auto py-16 text-center">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-slate-800">Book Not Found</h2>
-        <p className="text-sm text-slate-500 mt-1 mb-6">
-          The requested book does not exist or has been removed.
+        <AlertCircle className="w-12 h-12 text-[#e5a856] mx-auto mb-3" />
+        <h2 className="text-xl font-serif font-bold text-[#f7f2eb]">Book Not Found</h2>
+        <p className="text-sm text-stone-400 mt-1 mb-6">
+          The requested book does not exist or has been removed from our shelves.
         </p>
         <Link
           href="/books"
-          className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium"
+          className="px-6 py-2.5 bg-[#e5a856] text-[#120e0c] font-bold rounded-xl text-sm"
         >
           Back to All Books
         </Link>
@@ -158,88 +156,89 @@ export default function BookDetailsPage() {
       {/* Back button */}
       <Link
         href="/books"
-        className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 mb-6 transition-colors"
+        className="inline-flex items-center gap-2 text-sm font-medium text-stone-400 hover:text-[#e5a856] mb-6 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Books</span>
+        <ArrowLeft className="w-4 h-4 text-[#e5a856]" />
+        <span>Back to Library Catalog</span>
       </Link>
 
-      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm grid grid-cols-1 md:grid-cols-12 gap-8 p-6 sm:p-10">
+      {/* Main Vintage Details Card */}
+      <div className="bg-[#1c1613] rounded-3xl border border-[#30241e] shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 gap-8 p-6 sm:p-10">
         {/* Book Cover Image */}
         <div className="md:col-span-5 flex flex-col items-center">
-          <div className="w-full max-w-sm aspect-[3/4] bg-slate-100 rounded-2xl overflow-hidden shadow-md border border-slate-200">
+          <div className="w-full max-w-sm aspect-[3/4] bg-[#120e0c] rounded-2xl overflow-hidden shadow-2xl border border-[#3a2c24] relative group">
             <img
               src={book.image}
               alt={book.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 (e.target as HTMLImageElement).src =
                   "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500";
               }}
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1c1613]/80 via-transparent to-transparent pointer-events-none" />
           </div>
         </div>
 
         {/* Book Information */}
         <div className="md:col-span-7 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-[#281f1a] text-[#e5a856] border border-[#423228] text-xs font-serif font-semibold rounded-full">
               <Tag className="w-3.5 h-3.5" />
               {book.category}
             </span>
 
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-800 leading-tight">
+            <h1 className="text-2xl sm:text-4xl font-serif font-extrabold text-[#fdf8f0] leading-tight">
               {book.title}
             </h1>
-            <p className="text-base text-slate-600 flex items-center gap-2">
-              <User className="w-5 h-5 text-slate-400" />
+            <p className="text-base text-stone-300 flex items-center gap-2">
+              <User className="w-4 h-4 text-[#e5a856]" />
               <span>
-                By <strong className="text-slate-800">{book.author}</strong>
+                By <strong className="text-[#f7f2eb]">{book.author}</strong>
               </span>
             </p>
 
             <div className="flex items-center gap-3 pt-2">
               <div
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 border ${
                   available
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-red-50 text-red-600 border border-red-200"
+                    ? "bg-emerald-950/40 text-emerald-400 border-emerald-800/50"
+                    : "bg-red-950/40 text-red-400 border-red-800/50"
                 }`}
               >
                 <Layers className="w-4 h-4" />
                 <span>
                   {available
                     ? `Available Copies: ${book.availableCopies ?? book.totalCopies} of ${book.totalCopies}`
-                    : "Not Available (Out of Stock)"}
+                    : "Currently Out of Stock"}
                 </span>
               </div>
             </div>
 
             <div className="pt-2">
-              <h3 className="text-sm font-bold text-slate-800 mb-1">About This Book</h3>
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+              <h3 className="text-sm font-serif font-bold text-[#e5a856] mb-1.5">About This Edition</h3>
+              <p className="text-sm text-stone-300 leading-relaxed whitespace-pre-line font-sans">
                 {book.description}
               </p>
             </div>
           </div>
 
-          {/* Added by & Action */}
-          <div className="space-y-6 pt-6 border-t border-slate-100">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-500 space-y-1">
-              <p className="font-semibold text-slate-700 flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-indigo-600" /> Added by Community Contributor:
+          <div className="space-y-6 pt-6 border-t border-[#291f1a]">
+            <div className="bg-[#241c17] p-4 rounded-xl border border-[#382b23] text-xs text-stone-400 space-y-1.5">
+              <p className="font-semibold text-[#e5a856] flex items-center gap-1.5 font-serif">
+                <BookOpen className="w-4 h-4" /> Added to Community Library By:
               </p>
-              <p>Name: <span className="font-medium text-slate-800">{book.userName || "BookNook Member"}</span></p>
-              <p>Email: <span className="font-medium text-slate-800">{book.userEmail || "N/A"}</span></p>
+              <p>Name: <span className="font-medium text-[#f7f2eb]">{book.userName || "BookNook Member"}</span></p>
+              <p>Email: <span className="font-medium text-[#f7f2eb]">{book.userEmail || "N/A"}</span></p>
             </div>
 
             <button
               onClick={() => setModalOpen(true)}
               disabled={!available}
-              className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm ${
+              className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${
                 available
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  ? "bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] text-[#120e0c] cursor-pointer shadow-[#d99b52]/15 hover:scale-[1.01]"
+                  : "bg-[#251d19] text-stone-500 border border-[#362922] cursor-not-allowed"
               }`}
             >
               <BookCheck className="w-5 h-5" />
@@ -251,61 +250,61 @@ export default function BookDetailsPage() {
 
       {/* Borrow Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="bg-[#1c1613] rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#3a2c24] relative animate-in fade-in zoom-in duration-200">
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              className="absolute top-4 right-4 text-stone-400 hover:text-[#e5a856] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <div className="p-3 bg-[#2a201a] text-[#e5a856] rounded-xl border border-[#3e2e25]">
                 <BookCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800">Borrow Book</h3>
-                <p className="text-xs text-slate-500">Confirm your book borrowing details</p>
+                <h3 className="text-xl font-serif font-bold text-[#f7f2eb]">Borrow Book</h3>
+                <p className="text-xs text-stone-400">Confirm your reading reservation</p>
               </div>
             </div>
 
             <form onSubmit={handleConfirmBorrow} className="space-y-4">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-3">
+              <div className="p-3 bg-[#241c17] rounded-xl border border-[#342720] flex items-center gap-3">
                 <img src={book.image} alt={book.title} className="w-10 h-14 object-cover rounded shadow-sm" />
                 <div>
-                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{book.title}</h4>
-                  <p className="text-xs text-slate-500">{book.author}</p>
+                  <h4 className="text-sm font-serif font-bold text-[#fdf8f0] line-clamp-1">{book.title}</h4>
+                  <p className="text-xs text-stone-400">{book.author}</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                  <User className="w-3.5 h-3.5" /> Your Name (Read-only)
+                <label className="block text-xs font-semibold text-stone-400 mb-1 flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-[#e5a856]" /> Reader Name (Read-only)
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={session.user.name || ""}
-                  className="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-700 cursor-not-allowed"
+                  className="w-full px-3.5 py-2 bg-[#251d18] border border-[#382a22] rounded-lg text-sm text-stone-300 cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                  <Mail className="w-3.5 h-3.5" /> Your Email (Read-only)
+                <label className="block text-xs font-semibold text-stone-400 mb-1 flex items-center gap-1">
+                  <Mail className="w-3.5 h-3.5 text-[#e5a856]" /> Reader Email (Read-only)
                 </label>
                 <input
                   type="email"
                   readOnly
                   value={session.user.email || ""}
-                  className="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-700 cursor-not-allowed"
+                  className="w-full px-3.5 py-2 bg-[#251d18] border border-[#382a22] rounded-lg text-sm text-stone-300 cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" /> Return Date *
+                <label className="block text-xs font-semibold text-stone-400 mb-1 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-[#e5a856]" /> Scheduled Return Date *
                 </label>
                 <input
                   type="date"
@@ -313,10 +312,10 @@ export default function BookDetailsPage() {
                   min={new Date().toISOString().split("T")[0]}
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3.5 py-2 bg-[#251d18] border border-[#382a22] rounded-lg text-sm text-[#f7f2eb] focus:outline-none focus:border-[#e5a856] [color-scheme:dark]"
                 />
-                <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> Standard borrowing period is 7 days.
+                <p className="text-[11px] text-stone-400 mt-1 flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-[#e5a856]" /> Standard borrowing period is 7 days.
                 </p>
               </div>
 
@@ -324,17 +323,17 @@ export default function BookDetailsPage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2.5 px-4 border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-sm rounded-xl transition-colors"
+                  className="flex-1 py-2.5 px-4 border border-[#3e2e25] hover:bg-[#251d18] text-stone-300 font-medium text-sm rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={borrowing}
-                  className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="flex-1 py-2.5 px-4 bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] text-[#120e0c] font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 shadow-md shadow-[#d99b52]/20"
                 >
                   {borrowing ? (
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-[#120e0c] border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <span>Confirm Borrow</span>
                   )}
