@@ -52,11 +52,15 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
+      // ছবি না দিলে স্বয়ংক্রিয়ভাবে নামের অক্ষর দিয়ে অবতার জেনারেট হবে
+      const defaultAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || "User")}`;
+      const userImage = photoURL.trim() ? photoURL.trim() : defaultAvatar;
+
       const res = await signUp.email({
         email,
         password,
         name,
-        image: photoURL || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
+        image: userImage,
       });
 
       if (res?.error) {
@@ -123,17 +127,19 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Photo URL Field */}
+          {/* Photo URL Field (OPTIONAL) */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Photo URL</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-slate-700">Photo URL</label>
+              <span className="text-xs text-slate-400">(Optional)</span>
+            </div>
             <div className="relative">
               <ImageIcon className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="url"
-                required
                 value={photoURL}
                 onChange={(e) => setPhotoURL(e.target.value)}
-                placeholder="https://example.com/avatar.jpg"
+                placeholder="Leave blank for default avatar"
                 className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
               />
             </div>
