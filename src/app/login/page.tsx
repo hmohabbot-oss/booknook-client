@@ -10,7 +10,8 @@ import { BookOpen, Mail, Lock, ArrowRight } from "lucide-react";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const requestedCallback = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = requestedCallback.startsWith("/") && !requestedCallback.startsWith("//") ? requestedCallback : "/";
 
   useEffect(() => {
     document.title = "BookNook | Login";
@@ -36,7 +37,7 @@ function LoginForm() {
         return;
       }
 
-      toast.success("Welcome back! Login successful.");
+      toast.success("Welcome back to BookNook!");
       router.push(callbackUrl);
       router.refresh();
     } catch (err: unknown) {
@@ -48,64 +49,68 @@ function LoginForm() {
   };
 
   const handleForgotPassword = () => {
-    toast("Password recovery is disabled per assignment guidelines.", {
+    toast("Password recovery is disabled per assignment instructions.", {
       icon: "ℹ️",
     });
   };
 
-  const handleGoogleLogin = () => {
-    toast.error("Google login will be active once credentials are provided in .env");
+  const handleGoogleLogin = async () => {
+    try {
+      await signIn.social({ provider: "google", callbackURL: callbackUrl });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in is unavailable. Check the OAuth configuration.");
+    }
   };
 
   return (
     <div className="flex min-h-[calc(100vh-130px)] items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+      <div className="w-full max-w-md bg-[#1c1613] p-8 sm:p-10 rounded-3xl shadow-2xl border border-[#30241e]">
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 rounded-full bg-indigo-50 text-indigo-600 mb-3">
-            <BookOpen className="w-8 h-8" />
+          <div className="inline-flex p-3 rounded-2xl bg-[#281f1a] text-[#e5a856] border border-[#3e2e25] mb-3">
+            <BookOpen className="w-7 h-7" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800">Welcome Back</h2>
-          <p className="text-sm text-slate-500 mt-1">Login to access your BookNook library</p>
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#fdf8f0]">Welcome Back</h2>
+          <p className="text-xs text-stone-400 mt-1">Enter your reader credentials to access BookNook</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           {/* Email Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+            <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Email Address</label>
             <div className="relative">
-              <Mail className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-[#e5a856] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
           </div>
 
           {/* Password Field */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-slate-700">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-serif font-semibold text-stone-300">Password</label>
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-[11px] text-[#e5a856] hover:underline"
               >
                 Forgot Password?
               </button>
             </div>
             <div className="relative">
-              <Lock className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-[#e5a856] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
           </div>
@@ -114,26 +119,26 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+            className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] text-[#120e0c] font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#d99b52]/15 disabled:opacity-70"
           >
             {loading ? (
-              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="inline-block w-4 h-4 border-2 border-[#120e0c] border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Login</span>
+                <span>Sign In to Library</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        {/* Social Login Divider */}
+        {/* Social Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
+            <div className="w-full border-t border-[#2d221c]"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-slate-400">Or continue with</span>
+            <span className="bg-[#1c1613] px-3 text-stone-500 font-serif">Or continue with</span>
           </div>
         </div>
 
@@ -141,7 +146,7 @@ function LoginForm() {
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors"
+          className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-[#251d18] border border-[#382a22] hover:border-[#4d3a2f] rounded-xl text-stone-300 text-xs font-semibold transition-all"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -164,10 +169,9 @@ function LoginForm() {
           <span>Continue with Google</span>
         </button>
 
-        {/* Link to Register */}
-        <p className="mt-6 text-center text-sm text-slate-500">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-700">
+        <p className="mt-6 text-center text-xs text-stone-400">
+          New to BookNook?{" "}
+          <Link href="/register" className="font-semibold text-[#e5a856] hover:underline">
             Register here
           </Link>
         </p>
@@ -178,7 +182,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e5a856]"></div></div>}>
       <LoginForm />
     </Suspense>
   );

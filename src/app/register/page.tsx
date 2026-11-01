@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signUp } from "@/lib/auth-client";
+import { signIn, signUp } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 import { BookOpen, User, Mail, Image as ImageIcon, Lock, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 
@@ -21,7 +21,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
 
-  // পাসওয়ার্ড ভ্যালিডেশন চেক
+  // পাসওয়ার্ড ভ্যালিডেশন
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
   const isMinLength = password.length >= 6;
@@ -52,7 +52,6 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // ছবি না দিলে স্বয়ংক্রিয়ভাবে নামের অক্ষর দিয়ে অবতার জেনারেট হবে
       const defaultAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || "User")}`;
       const userImage = photoURL.trim() ? photoURL.trim() : defaultAvatar;
 
@@ -69,7 +68,7 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success("Account created successfully! Please login.");
+      toast.success("Account created successfully! Welcome to BookNook.");
       router.push("/login");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
@@ -79,77 +78,81 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    toast.error("Google login will be active once credentials are provided in .env");
+  const handleGoogleLogin = async () => {
+    try {
+      await signIn.social({ provider: "google", callbackURL: "/" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in is unavailable. Check the OAuth configuration.");
+    }
   };
 
   return (
     <div className="flex min-h-[calc(100vh-130px)] items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+      <div className="w-full max-w-md bg-[#1c1613] p-8 sm:p-10 rounded-3xl shadow-2xl border border-[#30241e]">
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 rounded-full bg-indigo-50 text-indigo-600 mb-3">
-            <BookOpen className="w-8 h-8" />
+          <div className="inline-flex p-3 rounded-2xl bg-[#281f1a] text-[#e5a856] border border-[#3e2e25] mb-3">
+            <BookOpen className="w-7 h-7" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800">Create an Account</h2>
-          <p className="text-sm text-slate-500 mt-1">Join BookNook to borrow and share books</p>
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#fdf8f0]">Join The Sanctuary</h2>
+          <p className="text-xs text-stone-400 mt-1">Create an account to explore, borrow, and contribute books</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
-          {/* Name Field */}
+          {/* Your Name Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Your Name</label>
+            <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Your Name *</label>
             <div className="relative">
-              <User className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-[#e5a856] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                placeholder="Enter your full name"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
           </div>
 
           {/* Email Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+            <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Email Address *</label>
             <div className="relative">
-              <Mail className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-[#e5a856] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
           </div>
 
-          {/* Photo URL Field (OPTIONAL) */}
+          {/* Photo URL Field */}
           <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-medium text-slate-700">Photo URL</label>
-              <span className="text-xs text-slate-400">(Optional)</span>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-xs font-serif font-semibold text-stone-300">Photo URL</label>
+              <span className="text-[11px] text-stone-400">(Optional)</span>
             </div>
             <div className="relative">
-              <ImageIcon className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <ImageIcon className="w-4 h-4 text-[#e5a856] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="url"
                 value={photoURL}
                 onChange={(e) => setPhotoURL(e.target.value)}
-                placeholder="Leave blank for default avatar"
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                placeholder="Leave blank for automatic initials avatar"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
           </div>
 
           {/* Password Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Password *</label>
             <div className="relative">
-              <Lock className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-[#e5a856] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
@@ -159,22 +162,22 @@ export default function RegisterPage() {
                   if (passwordError) setPasswordError("");
                 }}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
 
-            {/* Validation Checklist UI */}
+            {/* Validation Checklist */}
             {password.length > 0 && (
-              <div className="mt-2 space-y-1 text-xs">
-                <div className={`flex items-center gap-1.5 ${hasUppercase ? "text-emerald-600" : "text-slate-400"}`}>
+              <div className="mt-2.5 space-y-1 text-[11px] p-2.5 bg-[#241c17] rounded-xl border border-[#342720]">
+                <div className={`flex items-center gap-1.5 ${hasUppercase ? "text-emerald-400 font-medium" : "text-stone-500"}`}>
                   {hasUppercase ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                   <span>Must have an uppercase letter</span>
                 </div>
-                <div className={`flex items-center gap-1.5 ${hasLowercase ? "text-emerald-600" : "text-slate-400"}`}>
+                <div className={`flex items-center gap-1.5 ${hasLowercase ? "text-emerald-400 font-medium" : "text-stone-500"}`}>
                   {hasLowercase ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                   <span>Must have a lowercase letter</span>
                 </div>
-                <div className={`flex items-center gap-1.5 ${isMinLength ? "text-emerald-600" : "text-slate-400"}`}>
+                <div className={`flex items-center gap-1.5 ${isMinLength ? "text-emerald-400 font-medium" : "text-stone-500"}`}>
                   {isMinLength ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                   <span>Must be at least 6 characters long</span>
                 </div>
@@ -182,7 +185,7 @@ export default function RegisterPage() {
             )}
 
             {passwordError && (
-              <p className="mt-1 text-xs text-red-500">{passwordError}</p>
+              <p className="mt-1 text-xs text-red-400">{passwordError}</p>
             )}
           </div>
 
@@ -190,34 +193,34 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+            className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] text-[#120e0c] font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#d99b52]/15 disabled:opacity-70"
           >
             {loading ? (
-              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="inline-block w-4 h-4 border-2 border-[#120e0c] border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Register</span>
+                <span>Create Reader Account</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        {/* Social Login Divider */}
+        {/* Social Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
+            <div className="w-full border-t border-[#2d221c]"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-slate-400">Or continue with</span>
+            <span className="bg-[#1c1613] px-3 text-stone-500 font-serif">Or continue with</span>
           </div>
         </div>
 
-        {/* Google Login Button */}
+        {/* Google Login */}
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors"
+          className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-[#251d18] border border-[#382a22] hover:border-[#4d3a2f] rounded-xl text-stone-300 text-xs font-semibold transition-all"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -240,10 +243,9 @@ export default function RegisterPage() {
           <span>Continue with Google</span>
         </button>
 
-        {/* Link to Login */}
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-xs text-stone-400">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-700">
+          <Link href="/login" className="font-semibold text-[#e5a856] hover:underline">
             Login here
           </Link>
         </p>

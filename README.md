@@ -1,26 +1,26 @@
-# 📚 BookNook – A Small Online Library
+# BookNook
 
-BookNook is a modern community library platform where book lovers can explore, contribute, borrow, and return books seamlessly. Built with Next.js (App Router), Express.js, MongoDB, and BetterAuth.
+BookNook is a community library for discovering books, sharing personal copies, borrowing, and returning books.
 
-🌐 **Live Website:** [https://your-booknook-app.vercel.app](https://your-booknook-app.vercel.app)  
-💻 **Server Repository:** [https://github.com/your-username/booknook-server](https://github.com/your-username/booknook-server)
+- Live website: add the deployed URL after deployment.
+- Client repository: https://github.com/hmohabbot-oss/booknook-client
+- Server repository: https://github.com/hmohabbot-oss/booknook-server
 
----
+## Features
 
-## 🌟 Key Features
+- Email/password accounts with BetterAuth and Google sign-in when OAuth credentials are configured.
+- A Swiper home banner, latest arrivals, and responsive book catalogue.
+- Book creation, editing, and deletion with owner checks on the API.
+- Borrow and return tracking with atomic copy counts and duplicate-loan protection.
+- ImgBB cover uploads, clear toast feedback, and custom empty, loading, and not-found states.
+- A responsive reader profile and consistent vintage library theme.
 
-1. **Authentication & Session Management:** Built with BetterAuth and MongoDB Adapter, supporting password validation (uppercase, lowercase, min 6 characters) and seamless private route protection.
-2. **Interactive Swiper Banner & New Arrivals:** Dynamic homepage showcasing interactive slides and real-time latest 6 books loaded directly from MongoDB.
-3. **Real-Time Stock & Quantity Tracking ($inc):** Automated copy management that decreases available copies by 1 when a book is borrowed and restores the count when returned.
-4. **No Double Borrow Protection:** Server-side validation preventing a user from borrowing the same book twice simultaneously.
-5. **Full CRUD Operations:** Community members can add new books, edit existing details with pre-filled forms, and safely delete books using custom confirmation modals (no default browser alerts).
-6. **Custom Modals & Feedback:** Polished user experience with interactive modals, toast notifications for all feedback, responsive card grids, and a custom 404 page.
+## Local setup
 
----
+1. Install dependencies in both `booknook-client` and `booknook-server` with `npm install`.
+2. Copy each `.env.example` to `.env.local` in the client and `.env` in the server.
+3. Set the same `JWT_SECRET` in both files. Set a separate `BETTER_AUTH_SECRET` in the client, a valid MongoDB URI in both, and an ImgBB API key in the client environment.
+4. For Google sign-in, configure a Google OAuth web client and set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the client environment. Add the BetterAuth callback URL shown by the configured deployment to the Google OAuth client.
+5. Start the API with `npm run dev` in `booknook-server`, then start Next.js with `npm run dev` in `booknook-client`.
 
-## 🛠️ Tech Stack
-
-- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS, Lucide React, Swiper.js, React Hot Toast
-- **Authentication:** BetterAuth (MongoDB Adapter)
-- **Backend:** Node.js, Express.js, MongoDB Native Driver
-- **Deployment:** Vercel (Client) & Render / Vercel (Server)
+Keep `.env`, `.env.local`, and all real credentials out of Git. Before publishing, rotate any MongoDB credential that has ever been committed or pasted into source code, set the production app/API origins in both environments, and replace the live-site line above with the deployed URL.

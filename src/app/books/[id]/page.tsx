@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
 import {
   BookOpen,
   User,
@@ -45,11 +47,7 @@ export default function BookDetailsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [borrowing, setBorrowing] = useState(false);
 
-  // ডিফল্ট রিটার্ন ডেট (আজ থেকে ৭ দিন পর)
-  const defaultReturnDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
-  const [returnDate, setReturnDate] = useState(defaultReturnDate);
+  const [returnDate, setReturnDate] = useState("");
 
   // প্রাইভেট রুট চেক
   useEffect(() => {
@@ -63,8 +61,7 @@ export default function BookDetailsPage() {
   useEffect(() => {
     const fetchBook = async () => {
       try {
-        const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-        const res = await fetch(`${serverUrl}/books/${id}`);
+        const res = await apiFetch(`/books/${id}`);
         if (!res.ok) throw new Error("Book not found");
         const data = await res.json();
         setBook(data);
@@ -77,10 +74,10 @@ export default function BookDetailsPage() {
       }
     };
 
-    if (id) {
+    if (id && !isPending && session) {
       fetchBook();
     }
-  }, [id]);
+  }, [id, isPending, session]);
 
   // বই ধার নেওয়া
   const handleConfirmBorrow = async (e: React.FormEvent) => {
@@ -89,16 +86,13 @@ export default function BookDetailsPage() {
 
     setBorrowing(true);
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-      const res = await fetch(`${serverUrl}/borrows`, {
+      const res = await apiFetch("/borrows", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           bookId: book._id,
-          userEmail: session.user.email,
-          userName: session.user.name,
           returnDate: returnDate,
         }),
       });
@@ -167,9 +161,12 @@ export default function BookDetailsPage() {
         {/* Book Cover Image */}
         <div className="md:col-span-5 flex flex-col items-center">
           <div className="w-full max-w-sm aspect-[3/4] bg-[#120e0c] rounded-2xl overflow-hidden shadow-2xl border border-[#3a2c24] relative group">
-            <img
+            <Image
               src={book.image}
               alt={book.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 40vw"
+              unoptimized
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 (e.target as HTMLImageElement).src =
@@ -233,7 +230,10 @@ export default function BookDetailsPage() {
             </div>
 
             <button
-              onClick={() => setModalOpen(true)}
+              onClick={() => {
+                setReturnDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+                setModalOpen(true);
+              }}
               disabled={!available}
               className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${
                 available
@@ -271,7 +271,7 @@ export default function BookDetailsPage() {
 
             <form onSubmit={handleConfirmBorrow} className="space-y-4">
               <div className="p-3 bg-[#241c17] rounded-xl border border-[#342720] flex items-center gap-3">
-                <img src={book.image} alt={book.title} className="w-10 h-14 object-cover rounded shadow-sm" />
+                <Image src={book.image} alt={book.title} width={40} height={56} unoptimized className="w-10 h-14 object-cover rounded shadow-sm" />
                 <div>
                   <h4 className="text-sm font-serif font-bold text-[#fdf8f0] line-clamp-1">{book.title}</h4>
                   <p className="text-xs text-stone-400">{book.author}</p>

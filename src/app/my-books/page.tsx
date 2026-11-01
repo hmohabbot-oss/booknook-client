@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
+import Image from "next/image";
 import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
 import {
   BookOpen,
   Edit,
   Trash2,
   Tag,
   Layers,
-  ArrowRight,
   Plus,
   AlertTriangle,
   X,
-  CheckCircle2,
 } from "lucide-react";
 
 interface Book {
@@ -60,12 +60,11 @@ export default function MyBooksPage() {
   }, [session, isPending, router]);
 
   // ইউজারের যুক্ত করা বইগুলো ফেচ করা
-  const fetchMyBooks = async () => {
+  const fetchMyBooks = useCallback(async () => {
     if (!session?.user?.email) return;
 
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-      const res = await fetch(`${serverUrl}/books?email=${encodeURIComponent(session.user.email)}`);
+      const res = await apiFetch("/books?mine=true");
       if (!res.ok) throw new Error("Failed to load your books");
       const data = await res.json();
       setBooks(data);
@@ -75,13 +74,13 @@ export default function MyBooksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.email]);
 
   useEffect(() => {
     if (session?.user?.email) {
-      fetchMyBooks();
+      void Promise.resolve().then(fetchMyBooks);
     }
-  }, [session]);
+  }, [session, fetchMyBooks]);
 
   // Edit হ্যান্ডলার
   const handleOpenEdit = (book: Book) => {
@@ -95,8 +94,7 @@ export default function MyBooksPage() {
 
     setUpdating(true);
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-      const res = await fetch(`${serverUrl}/books/${editingBook._id}`, {
+      const res = await apiFetch(`/books/${editingBook._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingBook),
@@ -126,8 +124,7 @@ export default function MyBooksPage() {
 
     setDeleting(true);
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-      const res = await fetch(`${serverUrl}/books/${deletingBook._id}`, {
+      const res = await apiFetch(`/books/${deletingBook._id}`, {
         method: "DELETE",
       });
 
@@ -147,8 +144,8 @@ export default function MyBooksPage() {
   if (isPending || (loading && session)) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-500 font-medium">Loading your books...</p>
+        <div className="w-10 h-10 border-4 border-[#e5a856] border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-stone-400 font-medium">Loading your books...</p>
       </div>
     );
   }
@@ -160,19 +157,19 @@ export default function MyBooksPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#30241e]">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
-            <BookOpen className="w-8 h-8 text-indigo-600" />
+          <h1 className="text-3xl font-bold text-[#f7f2eb] flex items-center gap-2">
+            <BookOpen className="w-8 h-8 text-[#e5a856]" />
             <span>My Added Books</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-stone-400 mt-1">
             Manage, update, and monitor the books you have contributed to BookNook.
           </p>
         </div>
         <Link
           href="/add-book"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl transition-colors shadow-sm self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#d99b52] hover:bg-[#e5a856] text-[#120e0c] font-medium text-sm rounded-xl transition-colors shadow-sm self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Add Another Book</span>
@@ -180,15 +177,15 @@ export default function MyBooksPage() {
       </div>
 
       {books.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8 max-w-xl mx-auto">
+        <div className="text-center py-16 bg-[#1c1613] rounded-2xl border border-dashed border-[#3e2e25] p-8 max-w-xl mx-auto">
           <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-slate-700">You haven&apos;t added any books yet</h3>
-          <p className="text-sm text-slate-500 mt-1 mb-6">
+          <h3 className="text-lg font-semibold text-stone-200">You haven&apos;t added any books yet</h3>
+          <p className="text-sm text-stone-400 mt-1 mb-6">
             Share your favorite books with the community by adding your first book.
           </p>
           <Link
             href="/add-book"
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl inline-flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#d99b52] hover:bg-[#e5a856] text-white text-sm font-medium rounded-xl inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Add a Book Now</span>
@@ -199,36 +196,39 @@ export default function MyBooksPage() {
           {books.map((book) => (
             <div
               key={book._id}
-              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+              className="bg-[#1c1613] rounded-2xl border border-[#30241e] overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div>
-                <div className="relative h-56 w-full bg-slate-100 overflow-hidden">
-                  <img
+                <div className="relative h-56 w-full bg-[#2a201a] overflow-hidden">
+                  <Image
                     src={book.image}
                     alt={book.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
                         "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500";
                     }}
                   />
-                  <span className="absolute top-3 right-3 px-3 py-1 bg-white/90 backdrop-blur-sm text-indigo-700 font-semibold text-xs rounded-full shadow-sm flex items-center gap-1">
+                  <span className="absolute top-3 right-3 px-3 py-1 bg-[#1c1613]/90 backdrop-blur-sm text-[#e5a856] font-semibold text-xs rounded-full shadow-sm flex items-center gap-1">
                     <Tag className="w-3 h-3" />
                     {book.category}
                   </span>
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-lg font-bold text-slate-800 line-clamp-1 mb-1">
+                  <h3 className="text-lg font-bold text-[#f7f2eb] line-clamp-1 mb-1">
                     {book.title}
                   </h3>
-                  <p className="text-xs text-slate-500 mb-3">By {book.author}</p>
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-4">
+                  <p className="text-xs text-stone-400 mb-3">By {book.author}</p>
+                  <p className="text-xs text-stone-300 line-clamp-2 leading-relaxed mb-4">
                     {book.description}
                   </p>
 
-                  <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <Layers className="w-4 h-4 text-slate-400" />
+                  <div className="flex items-center gap-2 text-xs text-stone-400 bg-[#251d18] p-2.5 rounded-lg border border-[#30241e]">
+                    <Layers className="w-4 h-4 text-stone-500" />
                     <span>Total Copies: <strong>{book.totalCopies}</strong></span>
                     <span className="mx-1">•</span>
                     <span>Available: <strong className="text-emerald-600">{book.availableCopies ?? book.totalCopies}</strong></span>
@@ -247,7 +247,7 @@ export default function MyBooksPage() {
                 </button>
                 <button
                   onClick={() => handleOpenDelete(book)}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 font-medium text-xs rounded-xl border border-red-200 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-[#301918] hover:bg-[#48211f] text-red-400 font-medium text-xs rounded-xl border border-red-900/60 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete</span>
@@ -262,48 +262,48 @@ export default function MyBooksPage() {
       {/* 1. EDIT MODAL */}
       {/* ==================================================== */}
       {editModalOpen && editingBook && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="bg-[#1c1613] rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#30241e] relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setEditModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              className="absolute top-4 right-4 text-stone-500 hover:text-stone-300"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-xl font-bold text-slate-800 mb-1">Edit Book</h3>
-            <p className="text-xs text-slate-500 mb-6">Modify details for &quot;{editingBook.title}&quot;</p>
+            <h3 className="text-xl font-bold text-[#f7f2eb] mb-1">Edit Book</h3>
+            <p className="text-xs text-stone-400 mb-6">Modify details for &quot;{editingBook.title}&quot;</p>
 
             <form onSubmit={handleUpdateSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Title</label>
+                <label className="block text-xs font-semibold text-stone-300 mb-1">Title</label>
                 <input
                   type="text"
                   required
                   value={editingBook.title}
                   onChange={(e) => setEditingBook({ ...editingBook, title: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3.5 py-2 bg-[#251d18] text-[#f7f2eb] border border-[#3e2e25] rounded-lg text-sm focus:ring-2 focus:ring-[#e5a856]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Author</label>
+                <label className="block text-xs font-semibold text-stone-300 mb-1">Author</label>
                 <input
                   type="text"
                   required
                   value={editingBook.author}
                   onChange={(e) => setEditingBook({ ...editingBook, author: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3.5 py-2 bg-[#251d18] text-[#f7f2eb] border border-[#3e2e25] rounded-lg text-sm focus:ring-2 focus:ring-[#e5a856]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Category</label>
                   <select
                     value={editingBook.category}
                     onChange={(e) => setEditingBook({ ...editingBook, category: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                    className="w-full px-3.5 py-2 border border-[#3e2e25] rounded-lg text-sm bg-[#1c1613]"
                   >
                     {categories.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -312,37 +312,37 @@ export default function MyBooksPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Total Copies</label>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Total Copies</label>
                   <input
                     type="number"
                     min="1"
                     required
                     value={editingBook.totalCopies}
                     onChange={(e) => setEditingBook({ ...editingBook, totalCopies: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"
+                    className="w-full px-3.5 py-2 border border-[#3e2e25] rounded-lg text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Cover Image URL</label>
+                <label className="block text-xs font-semibold text-stone-300 mb-1">Cover Image URL</label>
                 <input
                   type="url"
                   required
                   value={editingBook.image}
                   onChange={(e) => setEditingBook({ ...editingBook, image: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"
+                  className="w-full px-3.5 py-2 border border-[#3e2e25] rounded-lg text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
+                <label className="block text-xs font-semibold text-stone-300 mb-1">Description</label>
                 <textarea
                   rows={3}
                   required
                   value={editingBook.description}
                   onChange={(e) => setEditingBook({ ...editingBook, description: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm resize-none"
+                  className="w-full px-3.5 py-2 border border-[#3e2e25] rounded-lg text-sm resize-none"
                 />
               </div>
 
@@ -350,14 +350,14 @@ export default function MyBooksPage() {
                 <button
                   type="button"
                   onClick={() => setEditModalOpen(false)}
-                  className="flex-1 py-2.5 px-4 border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-sm rounded-xl"
+                  className="flex-1 py-2.5 px-4 border border-[#3e2e25] hover:bg-[#251d18] text-stone-200 font-medium text-sm rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updating}
-                  className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 px-4 bg-[#d99b52] hover:bg-[#e5a856] text-[#120e0c] font-medium text-sm rounded-xl flex items-center justify-center gap-2"
                 >
                   {updating ? (
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -375,22 +375,22 @@ export default function MyBooksPage() {
       {/* 2. CUSTOM DELETE CONFIRMATION MODAL */}
       {/* ==================================================== */}
       {deleteModalOpen && deletingBook && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-100 relative">
-            <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="bg-[#1c1613] rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-[#30241e] relative">
+            <div className="w-12 h-12 bg-[#301918] text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-6 h-6" />
             </div>
 
-            <h3 className="text-lg font-bold text-slate-800">Delete This Book?</h3>
-            <p className="text-xs text-slate-500 mt-1 mb-6 leading-relaxed">
-              Are you sure you want to permanently remove <strong className="text-slate-700">&quot;{deletingBook.title}&quot;</strong>? This action cannot be undone.
+            <h3 className="text-lg font-bold text-[#f7f2eb]">Delete This Book?</h3>
+            <p className="text-xs text-stone-400 mt-1 mb-6 leading-relaxed">
+              Are you sure you want to permanently remove <strong className="text-stone-200">&quot;{deletingBook.title}&quot;</strong>? This action cannot be undone.
             </p>
 
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setDeleteModalOpen(false)}
-                className="flex-1 py-2.5 px-4 border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-sm rounded-xl"
+                className="flex-1 py-2.5 px-4 border border-[#3e2e25] hover:bg-[#251d18] text-stone-200 font-medium text-sm rounded-xl"
               >
                 Cancel
               </button>
@@ -398,7 +398,7 @@ export default function MyBooksPage() {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deleting}
-                className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-xl flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 px-4 bg-red-700 hover:bg-red-600 text-white font-medium text-sm rounded-xl flex items-center justify-center gap-2"
               >
                 {deleting ? (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

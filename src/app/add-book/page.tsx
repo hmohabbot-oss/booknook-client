@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
 import toast from "react-hot-toast";
+import { apiFetch, uploadBookImage } from "@/lib/api";
 import { BookPlus, Image as ImageIcon, Layers, User, Mail, Hash, AlignLeft, Sparkles } from "lucide-react";
 
 export default function AddBookPage() {
@@ -14,7 +16,6 @@ export default function AddBookPage() {
     document.title = "BookNook | Add Book";
   }, []);
 
-  // প্রাইভেট রুট গার্ড: লগইন না থাকলে রিডাইরেক্ট হবে
   useEffect(() => {
     if (!isPending && !session) {
       toast.error("Please login to add a book");
@@ -26,6 +27,7 @@ export default function AddBookPage() {
   const [author, setAuthor] = useState("");
   const [category, setCategory] = useState("Fiction");
   const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [totalCopies, setTotalCopies] = useState(1);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,8 +37,8 @@ export default function AddBookPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !author || !image || !description) {
-      toast.error("Please fill in all required fields");
+    if (!title || !author || (!image && !imageFile) || !description) {
+      toast.error("Please complete all required fields and choose a cover image");
       return;
     }
 
@@ -47,20 +49,18 @@ export default function AddBookPage() {
 
     setLoading(true);
 
-    const newBook = {
+    try {
+      const uploadedImage = imageFile ? await uploadBookImage(imageFile) : image;
+      const newBook = {
       title,
       author,
       category,
-      image,
+      image: uploadedImage,
       totalCopies: Number(totalCopies),
       description,
-      userName: session?.user?.name,
-      userEmail: session?.user?.email,
-    };
+      };
 
-    try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-      const response = await fetch(`${serverUrl}/books`, {
+      const response = await apiFetch("/books", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,15 +74,14 @@ export default function AddBookPage() {
 
       toast.success("Book added to BookNook successfully!");
 
-      // ফর্ম ক্লিয়ার করা
       setTitle("");
       setAuthor("");
       setImage("");
+      setImageFile(null);
       setDescription("");
       setTotalCopies(1);
       setCategory("Fiction");
 
-      // All Books পেজে রিডাইরেক্ট
       router.push("/books");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error adding book";
@@ -92,32 +91,29 @@ export default function AddBookPage() {
     }
   };
 
-  // লোডিং স্টেট (রিলোড দিলে যেন লগইন পেজে না যায়)
   if (isPending) {
     return (
       <div className="min-h-[calc(100vh-130px)] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-slate-500 font-medium">Checking authentication...</p>
+          <div className="w-10 h-10 border-4 border-[#e5a856] border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-stone-400 font-serif">Checking reader credentials...</p>
         </div>
       </div>
     );
   }
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-        <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+      <div className="bg-[#1c1613] p-8 sm:p-10 rounded-3xl shadow-2xl border border-[#30241e]">
+        <div className="flex items-center gap-3.5 mb-6 pb-6 border-b border-[#291f1a]">
+          <div className="p-3 bg-[#281f1a] text-[#e5a856] rounded-xl border border-[#3e2e25]">
             <BookPlus className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Add a New Book</h1>
-            <p className="text-sm text-slate-500">Contribute a book to the BookNook community library</p>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#fdf8f0]">Contribute a Book</h1>
+            <p className="text-sm text-stone-400 mt-0.5">Share a cherished volume with fellow BookNook readers</p>
           </div>
         </div>
 
@@ -125,27 +121,27 @@ export default function AddBookPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Book Title */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Book Title *</label>
+              <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Book Title *</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. The Great Gatsby"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                placeholder="e.g. The Midnight Library"
+                className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
 
             {/* Author Name */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Author Name *</label>
+              <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Author Name *</label>
               <input
                 type="text"
                 required
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
-                placeholder="e.g. F. Scott Fitzgerald"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                placeholder="e.g. Matt Haig"
+                className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
               />
             </div>
           </div>
@@ -153,27 +149,27 @@ export default function AddBookPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Category Select */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-slate-400" />
+              <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-[#e5a856]" />
                 <span>Category *</span>
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white"
+                className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] font-medium"
               >
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>
+                  <option key={cat} value={cat} className="bg-[#1c1613] text-[#f7f2eb]">
                     {cat}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Total Copies (Challenge) */}
+            {/* Total Copies */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5">
-                <Hash className="w-4 h-4 text-slate-400" />
+              <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
+                <Hash className="w-3.5 h-3.5 text-[#e5a856]" />
                 <span>Total Copies *</span>
               </label>
               <input
@@ -182,39 +178,49 @@ export default function AddBookPage() {
                 required
                 value={totalCopies}
                 onChange={(e) => setTotalCopies(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] font-medium"
               />
             </div>
           </div>
 
-          {/* Book Image URL */}
+          {/* Book image upload or existing image URL */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5">
-              <ImageIcon className="w-4 h-4 text-slate-400" />
-              <span>Book Cover Image URL *</span>
+            <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
+              <ImageIcon className="w-3.5 h-3.5 text-[#e5a856]" />
+              <span>Book Cover Image *</span>
             </label>
             <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl text-sm text-[#f7f2eb] file:mr-3 file:rounded-lg file:border-0 file:bg-[#e5a856] file:px-3 file:py-1.5 file:font-semibold file:text-[#120e0c]"
+            />
+            <p className="mt-1 text-xs text-stone-500">Choose an image up to 8 MB. Upload uses ImgBB.</p>
+            {imageFile && <p className="mt-2 text-xs text-stone-300">Selected: {imageFile.name}</p>}
+            <p className="my-2 text-center text-xs text-stone-500">Or provide an existing image URL</p>
+            <input
               type="url"
-              required
               value={image}
               onChange={(e) => setImage(e.target.value)}
-              placeholder="https://images.unsplash.com/... or ImgBB Direct link"
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              placeholder="https://example.com/book-cover.jpg"
+              className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
             />
-            {/* Image Preview */}
-            {image && (
-              <div className="mt-3 flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                <img
+            {image && !imageFile && (
+              <div className="mt-3 flex items-center gap-3 p-3 bg-[#241c17] border border-[#362922] rounded-xl">
+                <Image
                   src={image}
                   alt="Cover preview"
-                  className="w-12 h-16 object-cover rounded shadow-sm"
+                  width={48}
+                  height={64}
+                  unoptimized
+                  className="w-12 h-16 object-cover rounded shadow-md border border-[#3e2e25]"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = "none";
                   }}
                 />
-                <div className="text-xs text-slate-500">
-                  <p className="font-semibold text-slate-700">Image Preview</p>
-                  <p>Make sure this link directly points to the image file.</p>
+                <div className="text-xs text-stone-400">
+                  <p className="font-semibold text-[#f7f2eb]">Cover Preview Active</p>
+                  <p>Image link verified for library display.</p>
                 </div>
               </div>
             )}
@@ -222,8 +228,8 @@ export default function AddBookPage() {
 
           {/* Short Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5">
-              <AlignLeft className="w-4 h-4 text-slate-400" />
+            <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
+              <AlignLeft className="w-3.5 h-3.5 text-[#e5a856]" />
               <span>Short Description *</span>
             </label>
             <textarea
@@ -231,24 +237,24 @@ export default function AddBookPage() {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Write a brief overview about the book..."
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+              placeholder="Write a brief overview of this book's essence..."
+              className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 resize-none font-medium"
             />
           </div>
 
-          {/* Read-Only User Details */}
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Read-Only Contributor Info */}
+          <div className="p-4 bg-[#241c17] rounded-xl border border-[#382b23] grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <span className="text-xs text-slate-400 block mb-1 flex items-center gap-1">
-                <User className="w-3.5 h-3.5" /> Added By (Name)
+              <span className="text-[11px] text-stone-400 block mb-1 flex items-center gap-1">
+                <User className="w-3 h-3 text-[#e5a856]" /> Contributor (Name)
               </span>
-              <p className="text-sm font-semibold text-slate-700">{session?.user?.name || "User"}</p>
+              <p className="text-sm font-semibold text-[#f7f2eb]">{session?.user?.name || "Reader"}</p>
             </div>
             <div>
-              <span className="text-xs text-slate-400 block mb-1 flex items-center gap-1">
-                <Mail className="w-3.5 h-3.5" /> Added By (Email)
+              <span className="text-[11px] text-stone-400 block mb-1 flex items-center gap-1">
+                <Mail className="w-3 h-3 text-[#e5a856]" /> Contributor (Email)
               </span>
-              <p className="text-sm font-semibold text-slate-700">{session?.user?.email || "Email"}</p>
+              <p className="text-sm font-semibold text-[#f7f2eb]">{session?.user?.email || "Email"}</p>
             </div>
           </div>
 
@@ -256,14 +262,14 @@ export default function AddBookPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-70"
+            className="w-full py-3.5 px-6 bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] text-[#120e0c] font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#d99b52]/15 disabled:opacity-70"
           >
             {loading ? (
-              <span className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="inline-block w-5 h-5 border-2 border-[#120e0c] border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Add Book to Library</span>
+                <span>Add Book to Shelves</span>
               </>
             )}
           </button>

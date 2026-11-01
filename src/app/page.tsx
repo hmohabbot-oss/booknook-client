@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
@@ -154,9 +155,12 @@ export default function HomePage() {
                 className="bg-[#1c1613] rounded-2xl border border-[#30241e] hover:border-[#523d32] overflow-hidden shadow-lg hover:shadow-2xl transition-all flex flex-col group"
               >
                 <div className="relative h-64 w-full bg-[#120e0c] overflow-hidden">
-                  <img
+                  <Image
                     src={book.image}
                     alt={book.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    unoptimized
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
