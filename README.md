@@ -1,26 +1,39 @@
-# BookNook
+# 📚 BookNook – A Small Online Library
 
-BookNook is a community library for discovering books, sharing personal copies, borrowing, and returning books.
+> **"Add a book, borrow a book, return a book."**  
+> BookNook is an atmospheric, Dark Academia vintage-themed community library platform where book lovers can discover timeless literature, contribute personal copies, and borrow books with automated real-time stock management.
 
-- Live website: add the deployed URL after deployment.
-- Client repository: https://github.com/hmohabbot-oss/booknook-client
-- Server repository: https://github.com/hmohabbot-oss/booknook-server
+---
 
-## Features
+## 🌐 Live Website & Links
 
-- Email/password accounts with BetterAuth and Google sign-in when OAuth credentials are configured.
-- A Swiper home banner, latest arrivals, and responsive book catalogue.
-- Book creation, editing, and deletion with owner checks on the API.
-- Borrow and return tracking with atomic copy counts and duplicate-loan protection.
-- ImgBB cover uploads, clear toast feedback, and custom empty, loading, and not-found states.
-- A responsive reader profile and consistent vintage library theme.
+- **Live Website:** [https://booknook-client-alpha.vercel.app](https://booknook-client-alpha.vercel.app)
+- **Client GitHub Repository:** [https://github.com/hmohabbot-oss/booknook-client](https://github.com/hmohabbot-oss/booknook-client)
+- **Server GitHub Repository:** [https://github.com/hmohabbot-oss/booknook-server](https://github.com/hmohabbot-oss/booknook-server)
+- **Live Server API:** [https://booknook-server-iota.vercel.app](https://booknook-server-iota.vercel.app)
 
-## Local setup
+---
 
-1. Install dependencies in both `booknook-client` and `booknook-server` with `npm install`.
-2. Copy each `.env.example` to `.env.local` in the client and `.env` in the server.
-3. Set the same `JWT_SECRET` in both files. Set a separate `BETTER_AUTH_SECRET` in the client, a valid MongoDB URI in both, and an ImgBB API key in the client environment.
-4. For Google sign-in, configure a Google OAuth web client and set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the client environment. Add the BetterAuth callback URL shown by the configured deployment to the Google OAuth client.
-5. Start the API with `npm run dev` in `booknook-server`, then start Next.js with `npm run dev` in `booknook-client`.
+## 🌟 Key Features
 
-Keep `.env`, `.env.local`, and all real credentials out of Git. Before publishing, rotate any MongoDB credential that has ever been committed or pasted into source code, set the production app/API origins in both environments, and replace the live-site line above with the deployed URL.
+1. **Dark Academia Vintage Library Theme:** Crafted with rich deep espresso wood tones (`#120E0C`), warm golden amber lamplight (`#E5A856`), and parchment typography to recreate the feel of a classic reading sanctuary.
+2. **BetterAuth Authentication & Google Social Login:** Secure authentication with MongoDB Adapter featuring email/password validation (uppercase, lowercase, min 6 characters) and seamless Google OAuth sign-in.
+3. **Private Route Protection & Smart Redirection:** Unauthenticated users attempting to access protected routes (`/add-book`, `/my-books`, `/my-borrows`, `/books/:id`) are redirected to `/login`, and automatically returned to their intended destination post-login.
+4. **Interactive Swiper.js Banner & Real-Time New Arrivals:** Dynamic homepage showcasing 16:9 cinematic library slides and live latest 6 books loaded directly from MongoDB sorted by recency.
+5. **Automated Stock Tracking ($inc):** Real-time copy management that decrements available copies by 1 when a book is borrowed, restores it when returned, and disables borrowing when copies reach zero.
+6. **No Double Borrow Protection:** Server-validated constraint ensuring a user cannot borrow multiple copies of the same book concurrently.
+7. **Complete CRUD Operations:** Community members can add new books, edit existing volumes with pre-filled forms, and permanently remove books via custom confirmation modals (no default browser alerts).
+8. **Responsive Dashboard & Custom Feedback:** Fast, mobile-first design with interactive modal windows, toast notifications (`react-hot-toast`), and a custom 404 Not Found page.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Next.js 16 (App Router), TypeScript, Tailwind CSS, Lucide React, Swiper.js, React Hot Toast
+- **Authentication:** BetterAuth (MongoDB Adapter) & Google OAuth
+- **Backend:** Node.js, Express.js, MongoDB Native Driver, JWT
+- **Deployment:** Vercel (Client & Server)
+
+---
+
+*Developed by Mohabbot Hossain for Programming Hero Batch 14 Assignment 8.*
