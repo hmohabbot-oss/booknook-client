@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { BookOpen, LogOut, User as UserIcon, Menu, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function Navbar() {
-  const router = useRouter();
   const { data: session } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,11 +16,21 @@ export default function Navbar() {
       await signOut();
       toast.success("Successfully logged out!");
       setDropdownOpen(false);
-      setMobileMenuOpen(false);
-      router.refresh();
     } catch {
       toast.error("Failed to logout");
     }
+  };
+
+  // ইউজারের নামের আদ্যক্ষর (Initials) বের করা
+  const getInitials = (name?: string) => {
+    if (!name) return "BN";
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
   };
 
   return (
@@ -67,16 +74,21 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-[#e5a856] transition-all"
+                  className="flex items-center gap-2 p-0.5 rounded-full hover:ring-2 hover:ring-[#e5a856] transition-all"
+                  aria-label="User Menu"
                 >
-                  <Image
-                    src={session.user.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
-                    alt={session.user.name || "User"}
-                    width={36}
-                    height={36}
-                    unoptimized
-                    className="w-9 h-9 rounded-full object-cover border border-[#48352b]"
-                  />
+                  {/* থিম উপযোগী গোল্ডেন অ্যাম্বার অবতার */}
+                  {session.user.image && !session.user.image.includes("dicebear") && !session.user.image.includes("googleusercontent.com") ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || "User"}
+                      className="w-9 h-9 rounded-full object-cover border-2 border-[#e5a856]/60 shadow-md"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-[#d99b52] to-[#e5a856] text-[#120e0c] font-serif font-bold text-xs flex items-center justify-center border-2 border-[#f0b76e]/50 shadow-md">
+                      {getInitials(session.user.name)}
+                    </div>
+                  )}
                 </button>
 
                 {dropdownOpen && (
@@ -86,12 +98,12 @@ export default function Navbar() {
                       <p className="text-xs text-stone-400 truncate">{session.user.email}</p>
                     </div>
                     <Link
-                      href="/profile"
+                      href="/my-borrows"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2 text-sm text-stone-300 hover:bg-[#2b211b] hover:text-[#e5a856] transition-colors"
                     >
                       <UserIcon className="w-4 h-4 text-[#e5a856]" />
-                      My Profile
+                      My Borrows
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -113,7 +125,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="px-5 py-2 text-sm font-semibold text-[#14100e] bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] rounded-xl shadow-md transition-all"
+                  className="px-5 py-2 text-sm font-semibold text-[#120e0c] bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] rounded-xl shadow-md transition-all"
                 >
                   Register
                 </Link>
@@ -126,35 +138,11 @@ export default function Navbar() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-stone-300 hover:text-[#e5a856] p-2"
-              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-[#2d221c] py-3">
-            <div className="flex flex-col gap-1">
-              {[
-                ["Home", "/"], ["All Books", "/books"],
-                ...(session ? [["Add Book", "/add-book"], ["My Books", "/my-books"], ["My Borrows", "/my-borrows"], ["My Profile", "/profile"]] : []),
-              ].map(([label, href]) => (
-                <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm text-stone-300 hover:bg-[#251d18] hover:text-[#e5a856]">
-                  {label}
-                </Link>
-              ))}
-              {session ? (
-                <button onClick={handleLogout} className="px-3 py-2 text-left text-sm text-red-400">Logout</button>
-              ) : (
-                <div className="flex gap-3 px-3 pt-2">
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-sm text-stone-300">Login</Link>
-                  <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="text-sm font-semibold text-[#e5a856]">Register</Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );
