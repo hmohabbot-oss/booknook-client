@@ -21,7 +21,6 @@ export default function Navbar() {
     }
   };
 
-  // ইউজারের নামের আদ্যক্ষর (Initials) বের করা
   const getInitials = (name?: string) => {
     if (!name) return "BN";
     return name
@@ -77,7 +76,6 @@ export default function Navbar() {
                   className="flex items-center gap-2 p-0.5 rounded-full hover:ring-2 hover:ring-[#e5a856] transition-all"
                   aria-label="User Menu"
                 >
-                  {/* থিম উপযোগী গোল্ডেন অ্যাম্বার অবতার */}
                   {session.user.image && !session.user.image.includes("dicebear") && !session.user.image.includes("googleusercontent.com") ? (
                     <img
                       src={session.user.image}
@@ -91,26 +89,28 @@ export default function Navbar() {
                   )}
                 </button>
 
+                {/* Dropdown Menu (Strictly according to requirements: User Name, My Profile, Logout) */}
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-[#1f1814] rounded-xl shadow-2xl py-2 border border-[#3a2c24] z-50">
                     <div className="px-4 py-2.5 border-b border-[#2d221c]">
                       <p className="text-sm font-semibold text-[#f7f2eb]">{session.user.name}</p>
                       <p className="text-xs text-stone-400 truncate">{session.user.email}</p>
                     </div>
+                    {/* My Profile Link */}
                     <Link
-                      href="/my-borrows"
+                      href="/profile"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-stone-300 hover:bg-[#2b211b] hover:text-[#e5a856] transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-stone-300 hover:bg-[#2b211b] hover:text-[#e5a856] transition-colors"
                     >
                       <UserIcon className="w-4 h-4 text-[#e5a856]" />
-                      My Borrows
+                      <span>My Profile</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-400 hover:bg-[#2b211b] text-left transition-colors"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-[#2b211b] text-left transition-colors border-t border-[#2d221c]"
                     >
                       <LogOut className="w-4 h-4" />
-                      Logout
+                      <span>Logout</span>
                     </button>
                   </div>
                 )}
