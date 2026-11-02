@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
 import toast from "react-hot-toast";
-import { apiFetch, uploadBookImage } from "@/lib/api";
 import { BookPlus, Image as ImageIcon, Layers, User, Mail, Hash, AlignLeft, Sparkles } from "lucide-react";
 
 export default function AddBookPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+
+  // লাইভ সার্ভার লিংক সরাসরি ব্যবহার করা
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "https://booknook-server-iota.vercel.app";
 
   useEffect(() => {
     document.title = "BookNook | Add Book";
@@ -27,7 +28,6 @@ export default function AddBookPage() {
   const [author, setAuthor] = useState("");
   const [category, setCategory] = useState("Fiction");
   const [image, setImage] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [totalCopies, setTotalCopies] = useState(1);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,8 +37,13 @@ export default function AddBookPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !author || (!image && !imageFile) || !description) {
-      toast.error("Please complete all required fields and choose a cover image");
+    if (!session?.user?.email) {
+      toast.error("You must be logged in to add a book");
+      return;
+    }
+
+    if (!title || !author || !image || !description) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -49,18 +54,20 @@ export default function AddBookPage() {
 
     setLoading(true);
 
-    try {
-      const uploadedImage = imageFile ? await uploadBookImage(imageFile) : image;
-      const newBook = {
-      title,
-      author,
+    // নিশ্চিতভাবে ইউজারের নাম ও ইমেইল পাঠানো
+    const newBook = {
+      title: title.trim(),
+      author: author.trim(),
       category,
-      image: uploadedImage,
+      image: image.trim(),
       totalCopies: Number(totalCopies),
-      description,
-      };
+      description: description.trim(),
+      userName: session.user.name || "BookNook Reader",
+      userEmail: session.user.email.trim().toLowerCase(),
+    };
 
-      const response = await apiFetch("/books", {
+    try {
+      const response = await fetch(`${serverUrl}/books`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,12 +84,12 @@ export default function AddBookPage() {
       setTitle("");
       setAuthor("");
       setImage("");
-      setImageFile(null);
       setDescription("");
       setTotalCopies(1);
       setCategory("Fiction");
 
-      router.push("/books");
+      // সরাসরি My Books পেজে রিডাইরেক্ট করে নিজের যোগ করা বইটি দেখা
+      router.push("/my-books");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error adding book";
       toast.error(message);
@@ -113,13 +120,12 @@ export default function AddBookPage() {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#fdf8f0]">Contribute a Book</h1>
-            <p className="text-sm text-stone-400 mt-0.5">Share a cherished volume with fellow BookNook readers</p>
+            <p className="text-sm text-stone-400 mt-0.5">Share a volume with fellow BookNook readers</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Book Title */}
             <div>
               <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Book Title *</label>
               <input
@@ -132,7 +138,6 @@ export default function AddBookPage() {
               />
             </div>
 
-            {/* Author Name */}
             <div>
               <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5">Author Name *</label>
               <input
@@ -147,7 +152,6 @@ export default function AddBookPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Category Select */}
             <div>
               <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-[#e5a856]" />
@@ -166,7 +170,6 @@ export default function AddBookPage() {
               </select>
             </div>
 
-            {/* Total Copies */}
             <div>
               <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
                 <Hash className="w-3.5 h-3.5 text-[#e5a856]" />
@@ -183,36 +186,24 @@ export default function AddBookPage() {
             </div>
           </div>
 
-          {/* Book image upload or existing image URL */}
           <div>
             <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
               <ImageIcon className="w-3.5 h-3.5 text-[#e5a856]" />
-              <span>Book Cover Image *</span>
+              <span>Book Cover Image URL *</span>
             </label>
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-              className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl text-sm text-[#f7f2eb] file:mr-3 file:rounded-lg file:border-0 file:bg-[#e5a856] file:px-3 file:py-1.5 file:font-semibold file:text-[#120e0c]"
-            />
-            <p className="mt-1 text-xs text-stone-500">Choose an image up to 8 MB. Upload uses ImgBB.</p>
-            {imageFile && <p className="mt-2 text-xs text-stone-300">Selected: {imageFile.name}</p>}
-            <p className="my-2 text-center text-xs text-stone-500">Or provide an existing image URL</p>
-            <input
               type="url"
+              required
               value={image}
               onChange={(e) => setImage(e.target.value)}
-              placeholder="https://example.com/book-cover.jpg"
+              placeholder="https://images.unsplash.com/... or ImgBB Direct link"
               className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
             />
-            {image && !imageFile && (
+            {image && (
               <div className="mt-3 flex items-center gap-3 p-3 bg-[#241c17] border border-[#362922] rounded-xl">
-                <Image
+                <img
                   src={image}
                   alt="Cover preview"
-                  width={48}
-                  height={64}
-                  unoptimized
                   className="w-12 h-16 object-cover rounded shadow-md border border-[#3e2e25]"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = "none";
@@ -226,7 +217,6 @@ export default function AddBookPage() {
             )}
           </div>
 
-          {/* Short Description */}
           <div>
             <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
               <AlignLeft className="w-3.5 h-3.5 text-[#e5a856]" />
@@ -242,7 +232,6 @@ export default function AddBookPage() {
             />
           </div>
 
-          {/* Read-Only Contributor Info */}
           <div className="p-4 bg-[#241c17] rounded-xl border border-[#382b23] grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <span className="text-[11px] text-stone-400 block mb-1 flex items-center gap-1">
@@ -258,7 +247,6 @@ export default function AddBookPage() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
