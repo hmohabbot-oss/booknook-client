@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { BookOpen, LogOut, User as UserIcon, Menu, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -10,15 +10,26 @@ export default function Navbar() {
   const { data: session } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // লগআউট হলে সরাসরি হোম পেজে রিডাইরেক্ট হবে
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     try {
       await signOut();
       toast.success("Successfully logged out!");
       setDropdownOpen(false);
       setMobileMenuOpen(false);
-      // যেকোনো পেজ থেকেই লগআউট করলে সরাসরি হোম পেজে পাঠিয়ে দেওয়া হবে
       window.location.href = "/";
     } catch {
       toast.error("Failed to logout");
@@ -26,7 +37,7 @@ export default function Navbar() {
   };
 
   const getInitials = (name?: string) => {
-    if (!name) return "BN";
+    if (!name) return "MH";
     return name
       .split(" ")
       .filter(Boolean)
@@ -74,42 +85,46 @@ export default function Navbar() {
           {/* Auth State / Profile (Desktop) */}
           <div className="hidden md:flex items-center space-x-4">
             {session ? (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-0.5 rounded-full hover:ring-2 hover:ring-[#e5a856] transition-all"
+                  type="button"
+                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-2 p-0.5 rounded-full hover:ring-2 hover:ring-[#e5a856] transition-all focus:outline-none"
                   aria-label="User Menu"
                 >
-                  {session.user.image && !session.user.image.includes("dicebear") && !session.user.image.includes("googleusercontent.com") ? (
+                  {session.user.image && !imageError ? (
                     <img
                       src={session.user.image}
                       alt={session.user.name || "User"}
-                      className="w-9 h-9 rounded-full object-cover border-2 border-[#e5a856]/60 shadow-md"
+                      referrerPolicy="no-referrer"
+                      onError={() => setImageError(true)}
+                      className="w-9 h-9 rounded-full object-cover border-2 border-[#e5a856] shadow-md"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-[#d99b52] to-[#e5a856] text-[#120e0c] font-serif font-bold text-xs flex items-center justify-center border-2 border-[#f0b76e]/50 shadow-md">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-[#d99b52] to-[#e5a856] text-[#120e0c] font-serif font-bold text-xs flex items-center justify-center border-2 border-[#f0b76e]/60 shadow-md">
                       {getInitials(session.user.name)}
                     </div>
                   )}
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-[#1f1814] rounded-xl shadow-2xl py-2 border border-[#3a2c24] z-50">
-                    <div className="px-4 py-2.5 border-b border-[#2d221c]">
-                      <p className="text-sm font-semibold text-[#f7f2eb]">{session.user.name}</p>
-                      <p className="text-xs text-stone-400 truncate">{session.user.email}</p>
+                  <div className="absolute right-0 mt-2 w-56 bg-[#1c1613] rounded-2xl shadow-2xl py-2 border border-[#3e2e25] z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="px-4 py-3 border-b border-[#2d221c]">
+                      <p className="text-sm font-semibold text-[#f7f2eb] truncate">{session.user.name || "Reader"}</p>
+                      <p className="text-xs text-stone-400 truncate mt-0.5">{session.user.email}</p>
                     </div>
                     <Link
                       href="/profile"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-stone-300 hover:bg-[#2b211b] hover:text-[#e5a856] transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-stone-300 hover:bg-[#281f1a] hover:text-[#e5a856] transition-colors"
                     >
                       <UserIcon className="w-4 h-4 text-[#e5a856]" />
                       <span>My Profile</span>
                     </Link>
                     <button
+                      type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-[#2b211b] text-left transition-colors border-t border-[#2d221c]"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400 hover:bg-rose-950/30 text-left transition-colors border-t border-[#2d221c]"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Logout</span>
@@ -135,9 +150,10 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button (Hamburger) */}
           <div className="md:hidden flex items-center">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-stone-300 hover:text-[#e5a856] p-2 transition-colors focus:outline-none"
               aria-label="Toggle navigation menu"
@@ -201,15 +217,17 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Auth / Profile Section */}
+          {/* Mobile Auth / User Profile */}
           <div className="pt-3 border-t border-[#291f1a]">
             {session ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-3 py-2.5 bg-[#251d18] rounded-xl border border-[#382b23]">
-                  {session.user.image && !session.user.image.includes("dicebear") && !session.user.image.includes("googleusercontent.com") ? (
+                  {session.user.image && !imageError ? (
                     <img
                       src={session.user.image}
                       alt={session.user.name || "User"}
+                      referrerPolicy="no-referrer"
+                      onError={() => setImageError(true)}
                       className="w-10 h-10 rounded-full object-cover border border-[#e5a856]"
                     />
                   ) : (
@@ -223,8 +241,9 @@ export default function Navbar() {
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-950/40 border border-red-900/50 text-red-400 font-semibold text-xs rounded-xl hover:bg-red-900/60 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-950/40 border border-rose-900/50 text-rose-400 font-semibold text-xs rounded-xl hover:bg-rose-900/60 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>
