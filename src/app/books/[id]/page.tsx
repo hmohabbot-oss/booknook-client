@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { apiFetch } from "@/lib/api";
 import {
   BookOpen,
   User,
@@ -47,9 +45,14 @@ export default function BookDetailsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [borrowing, setBorrowing] = useState(false);
 
-  const [returnDate, setReturnDate] = useState("");
+  // লাইভ সার্ভার লিংক সরাসরি ডিফল্ট হিসেবে সেট করা
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "https://booknook-server-iota.vercel.app";
 
-  // প্রাইভেট রুট চেক
+  const defaultReturnDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+  const [returnDate, setReturnDate] = useState(defaultReturnDate);
+
   useEffect(() => {
     if (!isPending && !session && id) {
       toast.error("Please login to view book details and borrow");
@@ -57,11 +60,10 @@ export default function BookDetailsPage() {
     }
   }, [session, isPending, router, id]);
 
-  // বইয়ের তথ্য ফেচ করা
   useEffect(() => {
     const fetchBook = async () => {
       try {
-        const res = await apiFetch(`/books/${id}`);
+        const res = await fetch(`${serverUrl}/books/${id}`);
         if (!res.ok) throw new Error("Book not found");
         const data = await res.json();
         setBook(data);
@@ -74,25 +76,29 @@ export default function BookDetailsPage() {
       }
     };
 
-    if (id && !isPending && session) {
+    if (id) {
       fetchBook();
     }
-  }, [id, isPending, session]);
+  }, [id, serverUrl]);
 
-  // বই ধার নেওয়া
+  // লাইভ সার্ভারে বই ধার নেওয়া
   const handleConfirmBorrow = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!book || !session) return;
 
     setBorrowing(true);
     try {
-      const res = await apiFetch("/borrows", {
+      const normalizedEmail = (session.user.email || "").trim().toLowerCase();
+
+      const res = await fetch(`${serverUrl}/borrows`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           bookId: book._id,
+          userEmail: normalizedEmail,
+          userName: session.user.name || "BookNook Reader",
           returnDate: returnDate,
         }),
       });
@@ -106,6 +112,9 @@ export default function BookDetailsPage() {
       toast.success(`You have successfully borrowed "${book.title}"!`);
       setBook((prev) => (prev ? { ...prev, availableCopies: prev.availableCopies - 1 } : null));
       setModalOpen(false);
+
+      // ধার নেওয়া শেষে সরাসরি My Borrows পেজে নিয়ে যাওয়া
+      router.push("/my-borrows");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Borrow failed";
       toast.error(message);
@@ -147,7 +156,6 @@ export default function BookDetailsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Back button */}
       <Link
         href="/books"
         className="inline-flex items-center gap-2 text-sm font-medium text-stone-400 hover:text-[#e5a856] mb-6 transition-colors"
@@ -156,17 +164,12 @@ export default function BookDetailsPage() {
         <span>Back to Library Catalog</span>
       </Link>
 
-      {/* Main Vintage Details Card */}
       <div className="bg-[#1c1613] rounded-3xl border border-[#30241e] shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 gap-8 p-6 sm:p-10">
-        {/* Book Cover Image */}
         <div className="md:col-span-5 flex flex-col items-center">
           <div className="w-full max-w-sm aspect-[3/4] bg-[#120e0c] rounded-2xl overflow-hidden shadow-2xl border border-[#3a2c24] relative group">
-            <Image
+            <img
               src={book.image}
               alt={book.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 40vw"
-              unoptimized
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 (e.target as HTMLImageElement).src =
@@ -177,7 +180,6 @@ export default function BookDetailsPage() {
           </div>
         </div>
 
-        {/* Book Information */}
         <div className="md:col-span-7 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-[#281f1a] text-[#e5a856] border border-[#423228] text-xs font-serif font-semibold rounded-full">
@@ -230,10 +232,7 @@ export default function BookDetailsPage() {
             </div>
 
             <button
-              onClick={() => {
-                setReturnDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
-                setModalOpen(true);
-              }}
+              onClick={() => setModalOpen(true)}
               disabled={!available}
               className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${
                 available
@@ -248,7 +247,6 @@ export default function BookDetailsPage() {
         </div>
       </div>
 
-      {/* Borrow Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="bg-[#1c1613] rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#3a2c24] relative animate-in fade-in zoom-in duration-200">
@@ -271,7 +269,7 @@ export default function BookDetailsPage() {
 
             <form onSubmit={handleConfirmBorrow} className="space-y-4">
               <div className="p-3 bg-[#241c17] rounded-xl border border-[#342720] flex items-center gap-3">
-                <Image src={book.image} alt={book.title} width={40} height={56} unoptimized className="w-10 h-14 object-cover rounded shadow-sm" />
+                <img src={book.image} alt={book.title} className="w-10 h-14 object-cover rounded shadow-sm" />
                 <div>
                   <h4 className="text-sm font-serif font-bold text-[#fdf8f0] line-clamp-1">{book.title}</h4>
                   <p className="text-xs text-stone-400">{book.author}</p>
