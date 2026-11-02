@@ -16,6 +16,7 @@ export default function Navbar() {
       await signOut();
       toast.success("Successfully logged out!");
       setDropdownOpen(false);
+      setMobileMenuOpen(false);
     } catch {
       toast.error("Failed to logout");
     }
@@ -67,7 +68,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Auth State / Profile */}
+          {/* Auth State / Profile (Desktop) */}
           <div className="hidden md:flex items-center space-x-4">
             {session ? (
               <div className="relative">
@@ -89,14 +90,12 @@ export default function Navbar() {
                   )}
                 </button>
 
-                {/* Dropdown Menu (Strictly according to requirements: User Name, My Profile, Logout) */}
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-[#1f1814] rounded-xl shadow-2xl py-2 border border-[#3a2c24] z-50">
                     <div className="px-4 py-2.5 border-b border-[#2d221c]">
                       <p className="text-sm font-semibold text-[#f7f2eb]">{session.user.name}</p>
                       <p className="text-xs text-stone-400 truncate">{session.user.email}</p>
                     </div>
-                    {/* My Profile Link */}
                     <Link
                       href="/profile"
                       onClick={() => setDropdownOpen(false)}
@@ -133,17 +132,122 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button (Hamburger) */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-stone-300 hover:text-[#e5a856] p-2"
+              className="text-stone-300 hover:text-[#e5a856] p-2 transition-colors focus:outline-none"
+              aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-6 h-6 text-[#e5a856]" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Navigation Dropdown Menu (এখন সম্পূর্ণ সক্রিয়) */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-[#181310] border-b border-[#2d221c] px-4 pt-3 pb-6 space-y-3 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col space-y-1">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-xl text-stone-300 hover:text-[#e5a856] hover:bg-[#251d18] text-sm font-medium transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              href="/books"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-xl text-stone-300 hover:text-[#e5a856] hover:bg-[#251d18] text-sm font-medium transition-colors"
+            >
+              All Books
+            </Link>
+            {session && (
+              <>
+                <Link
+                  href="/add-book"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl text-stone-300 hover:text-[#e5a856] hover:bg-[#251d18] text-sm font-medium transition-colors"
+                >
+                  Add Book
+                </Link>
+                <Link
+                  href="/my-books"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl text-stone-300 hover:text-[#e5a856] hover:bg-[#251d18] text-sm font-medium transition-colors"
+                >
+                  My Books
+                </Link>
+                <Link
+                  href="/my-borrows"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl text-stone-300 hover:text-[#e5a856] hover:bg-[#251d18] text-sm font-medium transition-colors"
+                >
+                  My Borrows
+                </Link>
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl text-stone-300 hover:text-[#e5a856] hover:bg-[#251d18] text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                  <UserIcon className="w-4 h-4 text-[#e5a856]" />
+                  <span>My Profile</span>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Auth / Profile Section */}
+          <div className="pt-3 border-t border-[#291f1a]">
+            {session ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 px-3 py-2.5 bg-[#251d18] rounded-xl border border-[#382b23]">
+                  {session.user.image && !session.user.image.includes("dicebear") && !session.user.image.includes("googleusercontent.com") ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || "User"}
+                      className="w-10 h-10 rounded-full object-cover border border-[#e5a856]"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#d99b52] to-[#e5a856] text-[#120e0c] font-serif font-bold text-sm flex items-center justify-center border border-[#f0b76e]/50">
+                      {getInitials(session.user.name)}
+                    </div>
+                  )}
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-semibold text-[#f7f2eb] truncate">{session.user.name}</p>
+                    <p className="text-xs text-stone-400 truncate">{session.user.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-950/40 border border-red-900/50 text-red-400 font-semibold text-xs rounded-xl hover:bg-red-900/60 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2.5">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 px-4 text-sm font-medium text-stone-300 hover:text-[#e5a856] bg-[#251d18] border border-[#382b23] rounded-xl transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 px-4 text-sm font-bold text-[#120e0c] bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] rounded-xl shadow-md transition-all"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
