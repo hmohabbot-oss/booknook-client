@@ -4,13 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import toast from "react-hot-toast";
-import { BookPlus, Image as ImageIcon, Layers, User, Mail, Hash, AlignLeft, Sparkles } from "lucide-react";
+import { BookPlus, Image as ImageIcon, Layers, User, Mail, Hash, AlignLeft, Sparkles, Upload, Loader2 } from "lucide-react";
 
 export default function AddBookPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
-  // লাইভ সার্ভার লিংক সরাসরি ব্যবহার করা
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "https://booknook-server-iota.vercel.app";
 
   useEffect(() => {
@@ -31,8 +30,45 @@ export default function AddBookPage() {
   const [totalCopies, setTotalCopies] = useState(1);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const categories = ["Fiction", "Science", "History", "Kids", "Others"];
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("File size must be under 8 MB");
+      return;
+    }
+
+    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "e73a0e98031d683a45c3ceca62a83856";
+    setUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data?.data?.url) {
+        setImage(data.data.url);
+        toast.success("Image uploaded to ImgBB successfully!");
+      } else {
+        throw new Error(data?.error?.message || "Failed to upload image");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Upload error";
+      toast.error(message + ". You can also paste an image URL directly.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,8 +78,8 @@ export default function AddBookPage() {
       return;
     }
 
-    if (!title || !author || !image || !description) {
-      toast.error("Please fill in all required fields");
+    if (!title.trim() || !author.trim() || !image.trim() || !description.trim()) {
+      toast.error("Please fill in all required fields and provide a book cover");
       return;
     }
 
@@ -54,7 +90,6 @@ export default function AddBookPage() {
 
     setLoading(true);
 
-    // নিশ্চিতভাবে ইউজারের নাম ও ইমেইল পাঠানো
     const newBook = {
       title: title.trim(),
       author: author.trim(),
@@ -88,7 +123,6 @@ export default function AddBookPage() {
       setTotalCopies(1);
       setCategory("Fiction");
 
-      // সরাসরি My Books পেজে রিডাইরেক্ট করে নিজের যোগ করা বইটি দেখা
       router.push("/my-books");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error adding book";
@@ -186,21 +220,59 @@ export default function AddBookPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-serif font-semibold text-stone-300 mb-1.5 flex items-center gap-1.5">
+          {/* Book Cover Image: Local Upload to ImgBB or Direct URL */}
+          <div className="space-y-3">
+            <label className="block text-xs font-serif font-semibold text-stone-300 flex items-center gap-1.5">
               <ImageIcon className="w-3.5 h-3.5 text-[#e5a856]" />
-              <span>Book Cover Image URL *</span>
+              <span>Book Cover Image * (Upload File or Enter URL)</span>
             </label>
-            <input
-              type="url"
-              required
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="https://images.unsplash.com/... or ImgBB Direct link"
-              className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
-            />
+
+            <div className="p-4 bg-[#251d18] border border-[#382a22] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-[#1c1613] text-[#e5a856] rounded-xl border border-[#382a22]">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#f7f2eb]">Upload Image from Device</p>
+                  <p className="text-[11px] text-stone-400">Uploads directly to ImgBB (up to 8 MB)</p>
+                </div>
+              </div>
+
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-[#2f231c] hover:bg-[#e5a856] hover:text-[#120e0c] text-[#e5a856] font-semibold text-xs rounded-xl border border-[#48352b] transition-all">
+                {uploadingImage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    <span>Choose File</span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingImage}
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <div className="relative">
+              <input
+                type="url"
+                required
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="Or paste direct image URL (e.g. from Wikipedia / ImgBB)"
+                className="w-full px-4 py-2.5 bg-[#251d18] border border-[#382a22] rounded-xl focus:outline-none focus:border-[#e5a856] text-sm text-[#f7f2eb] placeholder:text-stone-500 font-medium"
+              />
+            </div>
+
             {image && (
-              <div className="mt-3 flex items-center gap-3 p-3 bg-[#241c17] border border-[#362922] rounded-xl">
+              <div className="flex items-center gap-3.5 p-3.5 bg-[#241c17] border border-[#362922] rounded-xl animate-in fade-in duration-200">
                 <img
                   src={image}
                   alt="Cover preview"
@@ -211,7 +283,7 @@ export default function AddBookPage() {
                 />
                 <div className="text-xs text-stone-400">
                   <p className="font-semibold text-[#f7f2eb]">Cover Preview Active</p>
-                  <p>Image link verified for library display.</p>
+                  <p className="text-[11px] text-emerald-400">Image successfully linked for library display.</p>
                 </div>
               </div>
             )}
@@ -249,7 +321,7 @@ export default function AddBookPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || uploadingImage}
             className="w-full py-3.5 px-6 bg-gradient-to-r from-[#d99b52] to-[#e5a856] hover:from-[#e5a856] hover:to-[#f0b76e] text-[#120e0c] font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#d99b52]/15 disabled:opacity-70"
           >
             {loading ? (
