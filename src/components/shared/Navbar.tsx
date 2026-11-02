@@ -11,12 +11,15 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // লগআউট হলে সরাসরি হোম পেজে রিডাইরেক্ট হবে
   const handleLogout = async () => {
     try {
       await signOut();
       toast.success("Successfully logged out!");
       setDropdownOpen(false);
       setMobileMenuOpen(false);
+      // যেকোনো পেজ থেকেই লগআউট করলে সরাসরি হোম পেজে পাঠিয়ে দেওয়া হবে
+      window.location.href = "/";
     } catch {
       toast.error("Failed to logout");
     }
@@ -132,7 +135,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button (Hamburger) */}
+          {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -145,7 +148,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navigation Dropdown Menu (এখন সম্পূর্ণ সক্রিয়) */}
+      {/* Mobile Navigation Dropdown Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#181310] border-b border-[#2d221c] px-4 pt-3 pb-6 space-y-3 shadow-2xl animate-in slide-in-from-top-2 duration-200">
           <div className="flex flex-col space-y-1">
